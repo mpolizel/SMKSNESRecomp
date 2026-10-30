@@ -11,12 +11,30 @@ Run Super Mario Kart natively on Windows.
 > this project, in the repository or in any release. The recompiled C is
 > generated locally from your own copy and is never committed.
 
+## Download (ready-to-run Windows build)
+
+Get the latest `supermariokart-<version>-windows-x64.zip` from the
+[Releases page](https://github.com/mpolizel/SMKSNESRecomp/releases/latest).
+
+The zip is a **setup pack**: it contains the launcher, the recompiler and this
+source tree, but no game data. On first run:
+
+1. Unzip anywhere and start `SuperMarioKartSNESRecomp.exe`.
+2. Let it download the portable build tools (one time per machine), or point
+   it at a `cmake-clang-v1` zip you already have.
+3. Pick your own `Super Mario Kart (USA).sfc` (CRC32 `cd80db86`).
+4. Press **Generate & rebuild**. The playable game is built into `build/` and
+   started; run it from there afterwards.
+
+In the launcher, **Settings → Shader** lists the scanline, CRT and upscaler
+presets; choosing one switches the renderer to OpenGL automatically.
+
 ## Status
 
-Scaffolded on 2026-10-30 — **not yet a working port.** The layout, build,
-regeneration pipeline, CI, and packaging are wired up; the game does not run
-until the host work in `src/game_rtl.c` is done. See
-[Porting from here](#porting-from-here).
+Boots to the title screen and runs the attract-mode race (Mode 7 with the
+DSP-1 command model, no firmware needed). Most code still runs through the
+snesrecomp interpreter; full cups, Battle Mode and two-player split screen
+are not yet verified. See [Porting from here](#porting-from-here).
 
 ## ROM identity
 
