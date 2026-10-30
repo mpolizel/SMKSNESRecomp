@@ -109,7 +109,10 @@ Two players, one controller per port.
 
 ## License
 
-This project's own source is under the license in `LICENSE`. The framework
-carries its own terms — see `snesrecomp/LICENSE` and
-`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`. Neither covers the game data, which
-is not distributed here.
+This project's own source is under the MIT license in `LICENSE`. The
+framework carries its own terms (PolyForm Noncommercial 1.0.0) — see
+`snesrecomp/LICENSE` and `snesrecomp/THIRD_PARTY_ATTRIBUTION.md`; the change
+in `patches/` applies to that framework and falls under its terms. The
+shaders under `assets/shaders/_libretro/` come from libretro/glsl-shaders and
+keep each author's license in their file headers. None of these cover the
+game data, which is not distributed here.
