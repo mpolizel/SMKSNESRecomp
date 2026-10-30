@@ -3,7 +3,7 @@
 A native recompilation of **Super Mario Kart** (USA), built on
 [snesrecomp](https://github.com/RetroPortingToolKit/snesrecomp).
 
-_Add a short description here._
+Run Super Mario Kart natively on Windows.
 
 
 
