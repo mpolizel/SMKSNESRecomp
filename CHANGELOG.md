@@ -3,9 +3,13 @@
 ## 0.1.2 — 2026-11-01
 
 ### Fixed
-- Display writes made at the very start of vblank (screen mode, brightness)
-  are no longer applied one frame late; a screen change could show the
-  previous screen's layout for a frame.
+- **Rear-view mirror:** the gap between the two screens no longer shows
+  pieces of the upper screen (hills, timer) when the lower screen is switched
+  to the mirror (X).
+- Display writes made at the very start of vblank (screen mode, brightness,
+  HDMA) are no longer applied one frame late, which caused the mirror bug
+  above and could show the previous screen's layout for a frame on a screen
+  change.
 
 ## 0.1.1 — 2026-11-01
 
