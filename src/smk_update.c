@@ -19,7 +19,13 @@
  * save states, config.ini, keybinds.ini) and rom.cfg are left as they are;
  * the /XF list guards them by name as well. Touching the setup executable
  * makes it newer than the rebuilt game, which is how the setup host knows to
- * offer Generate & rebuild instead of starting the old build. */
+ * offer Generate & rebuild once instead of starting the old build; after the
+ * rebuild the game is newer again and the setup hands off to it. (Forcing the
+ * wizard with SNESRECOMP_FORCE_SETUP instead would be inherited by the rebuilt
+ * game and bring the wizard back after every rebuild.) The setup reads the
+ * ROM path from the root rom.cfg; when that is missing or stale but the
+ * game's build\rom.cfg names a ROM that exists, the root one is pointed at it
+ * so the player is never asked for the ROM again. */
 static const char kUpdaterScript[] =
   "param([string]$Root, [string]$Url, [int]$WaitPid, [string]$Version)\r\n"
   "$ErrorActionPreference = 'Stop'\r\n"
@@ -42,12 +48,21 @@ static const char kUpdaterScript[] =
   "  & robocopy.exe $src.FullName $Root /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP "
       "/XF config.ini keybinds.ini rom.cfg update.ini *.srm *.state | Out-Null\r\n"
   "  if ($LASTEXITCODE -ge 8) { throw \"copy failed (robocopy exit $LASTEXITCODE)\" }\r\n"
+  "  $romCfg = Join-Path $Root 'rom.cfg'\r\n"
+  "  $gameRomCfg = Join-Path $Root 'build\\rom.cfg'\r\n"
+  "  $rootRom = if (Test-Path $romCfg) { (Get-Content $romCfg -Raw).Trim() } else { '' }\r\n"
+  "  if ((-not $rootRom -or -not (Test-Path -LiteralPath $rootRom)) -and (Test-Path $gameRomCfg)) {\r\n"
+  "    $gameRom = (Get-Content $gameRomCfg -Raw).Trim()\r\n"
+  "    if ($gameRom -and (Test-Path -LiteralPath $gameRom)) {\r\n"
+  "      [IO.File]::WriteAllText($romCfg, $gameRom)\r\n"
+  "      Write-Host \"Keeping your ROM: $gameRom\"\r\n"
+  "    }\r\n"
+  "  }\r\n"
   "  $setup = Join-Path $Root 'SuperMarioKartSNESRecomp.exe'\r\n"
   "  (Get-Item $setup).LastWriteTime = Get-Date\r\n"
   "  Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue\r\n"
   "  Write-Host ''\r\n"
   "  Write-Host 'Done. The setup window opens next: press Generate & rebuild to build the new version.'\r\n"
-  "  $env:SNESRECOMP_FORCE_SETUP = '1'\r\n"
   "  Start-Process -FilePath $setup -WorkingDirectory $Root\r\n"
   "  Start-Sleep -Seconds 4\r\n"
   "} catch {\r\n"
@@ -228,7 +243,8 @@ void SmkUpdateCheckOnStart(const char *current_version) {
            L"Your in-game saves, save states and settings are kept. Save states "
            L"made by an older version may not load in the new one; in-game saves "
            L"always do.\n\n"
-           L"You can turn this check off in Settings.",
+           L"You can turn this check off on the launcher's main screen "
+           L"(\"Check for updates on start\", next to \"Skip launcher on boot\").",
            wtag, wcur);
   if (MessageBoxW(NULL, text, L"Super Mario Kart Recomp - update available",
                   MB_YESNO | MB_ICONINFORMATION | MB_TOPMOST) != IDYES)

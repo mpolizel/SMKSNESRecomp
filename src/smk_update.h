@@ -1,8 +1,9 @@
 /*
  * Super Mario Kart — optional update check on start (Windows).
  *
- * When enabled (the launcher's "Check for updates on start" box, saved in
- * update.ini beside the executable), a release build asks GitHub for the
+ * When enabled (the "Check for updates on start" box beside "Skip launcher on
+ * boot", saved in update.ini beside the executable), a release build asks
+ * GitHub for the
  * latest release of this project and, if it is newer, offers to install it.
  * Accepting hands off to a PowerShell updater that downloads the setup pack,
  * copies it over the install without deleting anything (the pack carries no

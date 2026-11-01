@@ -1,43 +1,24 @@
 diff --git a/src/common/backends/imgui/launcher_imgui.cpp b/src/common/backends/imgui/launcher_imgui.cpp
-index 5143884..1220573 100644
+index 5143884..7f9f70a 100644
 --- a/src/common/backends/imgui/launcher_imgui.cpp
 +++ b/src/common/backends/imgui/launcher_imgui.cpp
-@@ -3986,6 +3986,19 @@ bool video_card_grows(const LauncherModel* m) {
-     return false;
- }
- 
-+// The host-owned checkbox (GameInfo.host_toggle_*). The value is the host's:
-+// read on every draw, written back on every change.
-+void draw_host_toggle_row(LauncherModel* m, const LauncherTheme& th) {
-+    if (!m || !m->host_toggle_get || !m->host_toggle_label) return;
-+    const float cb = ImGui::GetFrameHeight();   // a checkbox is square
-+    row_label_right(m->host_toggle_label, th, cb);
-+    if (m->host_toggle_help && m->host_toggle_help[0] && ImGui::IsItemHovered())
-+        ImGui::SetTooltip("%s", m->host_toggle_help);
-+    bool value = m->host_toggle_get() != 0;
-+    if (ImGui::Checkbox("##host_toggle", &value) && m->host_toggle_set)
-+        m->host_toggle_set(value ? 1 : 0);
-+}
-+
- void draw_shader_row(LauncherModel* m, const LauncherTheme& th, float col_w = 0.0f) {
-     if (!m || !m->has_shader) return;
-     row_label("Shader", th, col_w);
-@@ -4202,6 +4215,7 @@ void draw_display_controls(LauncherModel* m, const LauncherTheme& th) {
-         // that already fills to the card's right edge, so it flows from its
-         // label rather than reserving a fixed control width.
-         draw_shader_row(m, th);
-+        draw_host_toggle_row(m, th);
-         // HD texture packs (NES module, Mesen hires.txt format): one line —
-         //   [x] HD texture pack   …folder tail   [Browse]
-         // Mirrors the MSU-1 row in Audio (same enable + folder pattern).
-@@ -4433,6 +4447,7 @@ void draw_display_controls(LauncherModel* m, const LauncherTheme& th) {
-     }
- 
-     draw_shader_row(m, th);
-+    draw_host_toggle_row(m, th);
- 
-     /* No Perspective textures (or geometry correction) row: psxrecomp's PGXP
-      * Precision mod owns both on the Mods page, and GameInfo
+@@ -12757,6 +12757,16 @@ void draw_footer(LauncherModel* m, const LauncherTheme& th, float footer_h) {
+         ImGui::SetCursorScreenPos(ImVec2(origin.x, cta_y + (play_h - ImGui::GetFrameHeight()) * 0.5f));
+         if (ImGui::Checkbox(ui_text("Skip launcher on boot"), &skip))
+             launcher_model_request_skip_toggle(m);
++        // The host-owned checkbox (GameInfo.host_toggle_*) sits beside it. The
++        // value is the host's: read on every draw, written back on change.
++        if (m->host_toggle_get && m->host_toggle_label) {
++            ImGui::SameLine(0.0f, px(28.0f));
++            bool host = m->host_toggle_get() != 0;
++            if (ImGui::Checkbox(ui_text(m->host_toggle_label), &host) && m->host_toggle_set)
++                m->host_toggle_set(host ? 1 : 0);
++            if (m->host_toggle_help && m->host_toggle_help[0] && ImGui::IsItemHovered())
++                ImGui::SetTooltip("%s", m->host_toggle_help);
++        }
+     } else if (m->view == LNG_VIEW_SETTINGS &&
+                launcher_model_can_restore_defaults(m)) {
+         ImGui::SetCursorScreenPos(
 diff --git a/src/common/launcher_model.c b/src/common/launcher_model.c
 index 44ac872..7697d51 100644
 --- a/src/common/launcher_model.c
@@ -54,15 +35,15 @@ index 44ac872..7697d51 100644
          m->has_run_ahead        = game->has_run_ahead != 0;
          m->has_shader           = game->has_shader != 0;
 diff --git a/src/common/launcher_model.h b/src/common/launcher_model.h
-index 826ced7..a3f60bf 100644
+index 826ced7..2a92efd 100644
 --- a/src/common/launcher_model.h
 +++ b/src/common/launcher_model.h
 @@ -366,6 +366,12 @@ typedef struct {
      bool has_gyro_controls;
      bool has_sharp_filter;
      bool has_affine_filter;
-+    // Borrowed from GameInfo.host_toggle_*: one host-owned checkbox under the
-+    // Shader row. The value lives in the host; NULL get => no row.
++    // Borrowed from GameInfo.host_toggle_*: one host-owned checkbox beside
++    // "Skip launcher on boot". The value lives in the host; NULL get => none.
 +    const char* host_toggle_label;
 +    const char* host_toggle_help;
 +    int (*host_toggle_get)(void);
@@ -71,17 +52,18 @@ index 826ced7..a3f60bf 100644
      bool has_run_ahead;
      bool has_shader;
 diff --git a/src/recomp_launcher.h b/src/recomp_launcher.h
-index 1611349..17c2927 100644
+index 1611349..bf8029c 100644
 --- a/src/recomp_launcher.h
 +++ b/src/recomp_launcher.h
-@@ -2442,6 +2442,17 @@ typedef struct RecompLauncherCGameInfo {
+@@ -2442,6 +2442,18 @@ typedef struct RecompLauncherCGameInfo {
       * Image Filtering mod) sets this so no control that nothing applies is
       * drawn. Appended for ABI stability; zero keeps the row. */
      int                linear_filter_hidden;
 +
-+    /* One host-owned checkbox drawn in Display settings under the Shader row,
-+     * for a title preference the launcher has no field for (e.g. "Check for
-+     * updates on start"). The host keeps and persists the value: the launcher
++    /* One host-owned checkbox drawn on the dashboard footer beside "Skip
++     * launcher on boot", for a title preference the launcher has no field for
++     * (e.g. "Check for updates on start"). The host keeps and persists the
++     * value: the launcher
 +     * reads host_toggle_get() when it draws and calls host_toggle_set() on
 +     * every change. NULL host_toggle_get => no row. host_toggle_help is the
 +     * hover text; NULL => none. Appended for ABI stability. */
