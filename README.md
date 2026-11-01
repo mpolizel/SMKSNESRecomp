@@ -27,7 +27,19 @@ source tree, but no game data. On first run:
    started; run it from there afterwards.
 
 In the launcher, **Settings → Shader** lists the scanline, CRT and upscaler
-presets; choosing one switches the renderer to OpenGL automatically.
+presets; choosing one switches the renderer to OpenGL automatically. A fresh
+install starts with **CRT Geom (curved)**; pick **None** for the plain picture.
+
+### Updates
+
+With **Settings → Check for updates on start** ticked (the default), the game
+asks GitHub for the latest release when it starts and offers to install a
+newer one. Accepting closes the game, downloads the new setup pack, copies it
+over the install folder and reopens the setup window: press **Generate &
+rebuild**. Nothing is deleted; `build\` (the rebuilt game, `saves\`, save
+states, `config.ini`, `keybinds.ini`) and `rom.cfg` are kept. Save states made
+by an older version may not load in a newer one; in-game saves always do.
+Untick the box to turn the check off (saved in `update.ini`).
 
 ## Status
 
@@ -39,13 +51,17 @@ verified. See [Porting from here](#porting-from-here).
 
 ### Framework patches
 
-`patches/` holds two changes to the `snesrecomp` submodule. Reapply them after
-updating the submodule:
+`patches/` holds changes to the `snesrecomp` and `recomp-ui` submodules.
+Reapply them after updating the submodules:
 
 ```sh
 git -C snesrecomp apply ../patches/snesrecomp-shader-forces-opengl.patch
 git -C snesrecomp apply ../patches/snesrecomp-raster-oam-and-hdma.patch
+git -C recomp-ui apply ../patches/recomp-ui-host-toggle.patch
 ```
+
+`recomp-ui-host-toggle.patch` lets a title add one checkbox of its own to the
+launcher's Display settings; this project uses it for the update check.
 
 The second fixes the split screen. The game uploads a second sprite table
 (OAM) at its mid-screen split and the renderer, which draws after the CPU

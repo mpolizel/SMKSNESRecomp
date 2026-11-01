@@ -43,6 +43,7 @@ include(${SNESRECOMP_ROOT}/runner/runner.cmake)
 add_executable(SuperMarioKartSNESRecomp
     ${SNESRECOMP_RUNNER_SOURCES}
     src/main.c
+    src/smk_update.c
     src/host_contract.c
     src/game_rtl.c
     src/gen_stubs.c
