@@ -31,10 +31,31 @@ presets; choosing one switches the renderer to OpenGL automatically.
 
 ## Status
 
-Boots to the title screen and runs the attract-mode race (Mode 7 with the
-DSP-1 command model, no firmware needed). Most code still runs through the
-snesrecomp interpreter; full cups, Battle Mode and two-player split screen
-are not yet verified. See [Porting from here](#porting-from-here).
+Boots to the title screen and runs one- and two-player races (Mode 7 with
+the DSP-1 command model, no firmware needed); the lower screen's track map,
+rear-view mirror and second player show their sprites. Most code still runs
+through the snesrecomp interpreter; full cups and Battle Mode are not yet
+verified. See [Porting from here](#porting-from-here).
+
+### Framework patches
+
+`patches/` holds two changes to the `snesrecomp` submodule. Reapply them after
+updating the submodule:
+
+```sh
+git -C snesrecomp apply ../patches/snesrecomp-shader-forces-opengl.patch
+git -C snesrecomp apply ../patches/snesrecomp-raster-oam-and-hdma.patch
+```
+
+The second fixes the split screen. The game uploads a second sprite table
+(OAM) at its mid-screen split and the renderer, which draws after the CPU
+frame, used the last table for every line: the lower screen lost its map
+icons, mirror and second-player sprites. The renderer now keeps each OAM
+table with the beam line it takes effect on. It also files a display write
+made in the first half of a line with that line (the split's force-blank
+write jitters across a line start, which made the last line of each half
+flicker), and initializes HDMA channels enabled in vblank before line 1
+(the top two lines showed the previous frame's road).
 
 ## ROM identity
 
