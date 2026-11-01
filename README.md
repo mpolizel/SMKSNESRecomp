@@ -42,6 +42,8 @@ states, `config.ini`, `keybinds.ini`) and `rom.cfg` are kept. Save states made
 by an older version may not load in a newer one; in-game saves always do.
 Untick the box to turn the check off (saved in `update.ini`).
 
+See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
+
 ## Status
 
 Boots to the title screen and runs one- and two-player races (Mode 7 with
@@ -69,9 +71,10 @@ The second fixes the split screen. The game uploads a second sprite table
 frame, used the last table for every line: the lower screen lost its map
 icons, mirror and second-player sprites. The renderer now keeps each OAM
 table with the beam line it takes effect on. It also files a display write
-made in the first half of a line with that line (the split's force-blank
-write jitters across a line start, which made the last line of each half
-flicker), and initializes HDMA channels enabled in vblank before line 1
+made in the first half of a line with the line before it (the split's
+force-blank write jitters across a line start, which made the last line of
+each half flicker), but never across the start of vblank, whose writes
+belong to the next frame; and it initializes HDMA channels enabled in vblank before line 1
 (the top two lines showed the previous frame's road).
 
 ## ROM identity

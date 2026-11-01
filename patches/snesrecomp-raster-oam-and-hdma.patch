@@ -70,15 +70,15 @@ index 6f7fbd85..c61a7020 100644
  }
  
 +/* The beam line a display write is filed under. The renderer applies a line's
-+ * writes before drawing the next one, at whole-line granularity. A write made
-+ * in the first half of a line's visible pixels (before dot 150, master clock
-+ * 600) reaches most of that line on hardware, so it is filed with the
-+ * previous line and drawn from this one. Super Mario Kart's split IRQ lands
-+ * its force-blank write between line 107 h=1330 and line 108 h=110 from frame
-+ * to frame; by line number alone the last line of each half flickered. */
++ * writes before drawing the next one. A write in the first half of a visible
++ * line (before dot 150, master clock 600) reaches most of it on hardware, so
++ * it is filed with the previous line (SMK's split IRQ lands its force-blank
++ * write either side of line 107/108; filed by line alone, those flickered).
++ * Never across the field boundary: V=225 opens a new field, and filing its
++ * NMI writes as line 224 would apply them only after that field is drawn. */
 +static uint16_t raster_write_line(void) {
 +  const uint16_t v = g_snes->vPos;
-+  if (g_snes->hPos < 600u)
++  if (g_snes->hPos < 600u && v != 225u)
 +    return v ? (uint16_t)(v - 1) : 261u;
 +  return v;
 +}
