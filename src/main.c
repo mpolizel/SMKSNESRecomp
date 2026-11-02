@@ -93,8 +93,8 @@ static void SmkRedirectLogsToFile(void)
 }
 #endif
 
-/* A fresh install (no renderer saved yet) starts on OpenGL with the curved
- * CRT preset; GLSL presets render only on the OpenGL presenter. Whatever the
+/* A fresh install (no renderer saved yet) starts on OpenGL with the CRT
+ * Lottes preset; GLSL presets render only on the OpenGL presenter. Whatever the
  * player picks in the launcher is saved to config.ini and left alone. */
 static void SmkAfterConfig(void)
 {
@@ -102,7 +102,7 @@ static void SmkAfterConfig(void)
         strcpy(g_config.renderer, "opengl");
         g_config.output_method = kOutputMethod_OpenGL;
         if (!g_config.shader || !g_config.shader[0])
-            g_config.shader = "assets/shaders/CRT/Geom (curved).glslp";
+            g_config.shader = "assets/shaders/CRT/Lottes.glslp";
     }
     SmkUpdateCheckOnStart(SNES_GAME_VERSION);
 }
@@ -126,6 +126,9 @@ static const SnesDesktopHostGame kGameHost = {
     /* Battery-backed SRAM shows the launcher's SAVES panel. Leave NULL for a
      * title without one. The path is exe-relative. */
     .sram_path           = "saves/save.srm",
+    /* Ctrl+L (or Select+L3) reopens the launcher mid-game; shader, scale,
+     * volume and bindings apply on RESUME without a restart. */
+    .in_game_launcher    = 1,
 };
 
 #ifndef __ANDROID__

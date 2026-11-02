@@ -40,7 +40,16 @@ source tree, but no game data. On first run:
 
 In the launcher, **Settings → Shader** lists the scanline, CRT and upscaler
 presets; choosing one switches the renderer to OpenGL automatically. A fresh
-install starts with **CRT Geom (curved)**; pick **None** for the plain picture.
+install starts with **CRT Lottes**; pick **None** for the plain picture.
+Your choice is saved in `config.ini` and kept. The upscalers include
+**ScaleFX** and the neural **NNEDI3** presets.
+
+During play, **Ctrl+L** (or **Select+L3** on a controller) reopens the
+launcher: shader, window scale, volume and controls apply when you press
+**Resume**, without restarting the game. **I** cycles the audio interpolation
+between **Gaussian** (the console's own, the default), **Cubic** (crisper
+highs) and **Sinc**; it only changes what you hear, never the game, and the
+choice is saved in `audio_interpolation.txt`.
 
 ### Updates
 
@@ -50,9 +59,18 @@ asks GitHub for the latest release when it starts and offers to install a
 newer one. Accepting closes the game, downloads the new setup pack, copies it
 over the install folder and reopens the setup window: press **Generate &
 rebuild**. Nothing is deleted; `build\` (the rebuilt game, `saves\`, save
-states, `config.ini`, `keybinds.ini`) and `rom.cfg` are kept. Save states made
-by an older version may not load in a newer one; in-game saves always do.
+states, `config.ini`, `keybinds.ini`) and `rom.cfg` are kept.
 Untick the box to turn the check off (saved in `update.ini`).
+
+**Your saves are never lost or broken by an update.** In-game saves and save states made by
+any earlier release keep working in every later one. Before installing, the
+updater copies `build\saves\` to `save-backups\<date>_before_<version>\` and
+never deletes those copies; save files are left out of the copy, and if they
+changed anyway the backup is put back. Every release is checked against the
+one before it with `tools/check_update_compat.ps1`, which builds the previous
+release, makes an in-game save and a save state with it, installs the new pack with the previous
+release's own updater and rebuilds; it fails unless every save file is
+byte-identical and the new build continues the old save state.
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
 
@@ -72,8 +90,26 @@ Reapply them after updating the submodules:
 ```sh
 git -C snesrecomp apply ../patches/snesrecomp-shader-forces-opengl.patch
 git -C snesrecomp apply ../patches/snesrecomp-raster-oam-and-hdma.patch
+git -C snesrecomp apply ../patches/snesrecomp-audio-interpolation.patch
+git -C snesrecomp apply ../patches/snesrecomp-glsl-passprev-and-vao.patch
 git -C recomp-ui apply ../patches/recomp-ui-host-toggle.patch
 ```
+
+`snesrecomp-raster-oam-and-hdma.patch` is the renderer fix shared with the
+other ports. It also counts HDMA's first transfer, made in V=0's
+H-blank, as a table line, as the hardware does. Every HDMA split landed one
+line late without it (on Donkey Kong Country 2's island map the late layer
+split drew a bright line across the screen).
+
+`snesrecomp-audio-interpolation.patch` adds the Cubic and Sinc audio
+interpolation (I key). They resample the dry output only; the echo buffer,
+OUTX, pitch modulation and save states stay those of the console's Gaussian
+filter, so the game runs identically in every mode.
+
+`snesrecomp-glsl-passprev-and-vao.patch` fixes two shader bugs: a pass that
+reads `PassPrev<n>` back to the game frame got nothing (ScaleFX drew black),
+and switching to no shader mid-game drew a black screen because the shader
+path left the plain path's vertex attributes disabled.
 
 `recomp-ui-host-toggle.patch` lets a title add one checkbox of its own beside
 "Skip launcher on boot"; this project uses it for the update check.
