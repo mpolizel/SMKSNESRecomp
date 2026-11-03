@@ -93,16 +93,16 @@ static void SmkRedirectLogsToFile(void)
 }
 #endif
 
-/* A fresh install (no renderer saved yet) starts on OpenGL with the CRT
- * Lottes preset; GLSL presets render only on the OpenGL presenter. Whatever the
- * player picks in the launcher is saved to config.ini and left alone. */
+/* GLSL presets (assets/shaders) render only on the OpenGL presenter, so make
+ * it this title's default. A fresh install starts with no shader: the plain
+ * picture costs the GPU almost nothing, while a full-screen CRT preset made
+ * weaker laptops drop frames. Whatever the player picks in the launcher is
+ * saved to config.ini and left alone. */
 static void SmkAfterConfig(void)
 {
     if (g_config.renderer[0] == '\0') {
         strcpy(g_config.renderer, "opengl");
         g_config.output_method = kOutputMethod_OpenGL;
-        if (!g_config.shader || !g_config.shader[0])
-            g_config.shader = "assets/shaders/CRT/Lottes.glslp";
     }
     SmkUpdateCheckOnStart(SNES_GAME_VERSION);
 }
@@ -130,6 +130,15 @@ static const SnesDesktopHostGame kGameHost = {
      * volume and bindings apply on RESUME without a restart. */
     .in_game_launcher    = 1,
 };
+
+#ifdef _WIN32
+/* Laptops with switchable graphics (NVIDIA Optimus, AMD PowerXpress) run an
+ * unknown program on the integrated GPU, which cannot keep a full-screen
+ * shader at 60 fps. The drivers read these exports from the executable and
+ * pick the discrete GPU instead. */
+__declspec(dllexport) unsigned long NvOptimusEnablement = 1;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+#endif
 
 #ifndef __ANDROID__
 #undef main   /* desktop: keep plain main() even if SDL_main.h remapped it */
